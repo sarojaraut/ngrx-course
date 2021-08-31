@@ -1,0 +1,117 @@
+https://github.com/angular-university/ngrx-course
+
+https://www.udemy.com/course/ngrx-course/learn/lecture/15404050#overview
+
+npm install
+
+git checkout 1-start
+
+npm run server
+
+npm start (not ng serve)
+
+http://localhost:9000
+
+ngrx -  angular rective extensions
+
+http://localhost:9000/api/courses
+
+
+State menegement : rather than making api calls for each page visit, in memory state
+
+ng add @ngrx/store
+    CREATE src/app/reducers/index.ts (359 bytes)
+    UPDATE src/app/app.module.ts (1850 bytes) : added     StoreModule.forRoot(reducers, { metaReducers }) to the imports section
+    UPDATE package.json (1984 bytes)
+
+this adds imports of app.module.ts
+
+basically added a in memory database 
+
+in order to see the database lets add : ng add @ngrx/store-devtools
+
+this is a browser extension to see the in memory database using chrome dev tool
+
+UPDATE src/app/app.module.ts (1850 bytes) : added  StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }) turned off in porduction, last 25 versions
+
+
+ng g store auth/Auth --module auth.module.ts
+
+CREATE src/app/auth/reducers/index.ts (359 bytes)
+UPDATE src/app/auth/auth.module.ts (1257 bytes) :       StoreModule.forFeature('auth', fromAuth.reducers, { metaReducers: fromAuth.metaReducers }),
+
+it's a feature module , we will not be using { metaReducers: fromAuth.metaReducers }) so let's delete
+
+
+from index.ts delete the below
+import { environment } from '../../environments/environment';
+export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
+
+now we have completed the setup of ngrx 
+
+not in the redux dev tool you can see auth property : same as in specified in StoreModule.forFeature('auth'
+
+dispatch method modify the state, which takes action as only parameter
+action is js object, which has a type : string  and also contains a payload. payload the data action needs to create a new version of state
+
+auth.actions.ts
+
+export const login = createAction(
+    "[Login Page] User Login",
+    props<{user: User}>()
+);
+
+[Login Page] User Login : action is coming from login page and action is user login
+next line is the type of the payload which is an object with one peoprty user whose type ir User
+
+Note login above is just a action creator, we have to call the function login from login component like : this.store.dispatch(login({user})); note {user} is same as {user:user} when property value name is same we can use shortcut
+
+calling dispatch alone will not update the store state : action is dispatched correctly this means payload is received and informs store that something has happened externally. But action itself is not going to modify the state
+
+grouping actions : create action-types.ts with below content. With this simple trick we can make available all actions with AuthActions for auto completion and type safty
+
+import * as AuthActions from './auth.actions';
+
+export {AuthActions};
+
+
+Reducer is a function, takes first argument the current state of the store, and second argument the action that was just dispatched to the store.
+Then return here as the output and new version of the store state.
+
+function authReducer(state, action): State{}
+
+
+export const authReducer = createReducer(
+
+    initialAuthState,
+
+    on(AuthActions.login, (state, action) => {
+        return {
+            user: action.user
+        }
+    }),
+
+    on(AuthActions.logout, (state, action) => {
+        return {
+            user: undefined
+        }
+    })
+
+
+
+);
+
+
+first arg initialAuthState
+next argument is what action using on 
+----------
+
+git checkout 1-auth-finished
+
+application module structure
+
+which module does what
+
+forroot is eager module in module import section
+
+course module is lazy loaded as it's imported as a part of the router import
